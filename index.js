@@ -20,6 +20,7 @@ async function run() {
     try {
         await client.connect();
         const servicesCollection = client.db("doctors-portal").collection("services");
+        const bookingCollection = client.db("doctors-portal").collection("bookings");
         console.log('Conected DB')
 
         app.get('/services', async (req, res) => {
@@ -27,6 +28,12 @@ async function run() {
             const cursor = servicesCollection.find(query);
             const services = await cursor.toArray();
             res.send(services)
+        })
+
+        app.post('/bookings', async (req, res) => {
+            const booking = req.body;
+            const result = await bookingCollection.insertOne(booking);
+            res.send(result)
         })
 
     } finally {
