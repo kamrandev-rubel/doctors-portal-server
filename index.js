@@ -32,8 +32,42 @@ async function run() {
 
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
+            const query = {
+                treatment: booking.treatment,
+                date: booking.date,
+                patientEmail: booking.patientEmail
+            }
+            const exists = await bookingCollection.findOne(query);
+            if (exists) {
+                return res.send({ success: false, bookings: exists })
+            }
             const result = await bookingCollection.insertOne(booking);
-            res.send(result)
+            res.send({ success: true, result: result })
+        })
+
+        app.get('/available', async (req, res) => {
+            const date = req.query.date
+
+            // step 1: Get all Services
+            const services = await servicesCollection.find().toArray();
+
+            // step 2: get the booking of the day
+            const query = { date: date };
+            const bookings = await bookingCollection.find(query).toArray()
+
+            // step 3: forEach service
+            services.forEach(service => {
+                // step 4: find booking for that service
+                const serviceBookings = bookings.filter(booking => booking.treatment === service.name);
+                // step 5: select slots for the bookings
+                const bookedSlots = serviceBookings.map(bookingSlot => bookingSlot.slot);
+                // step 6: select those slots that are not in bookedSlots
+                const available = service.slots.filter(slots => !bookedSlots.includes(slots))
+                service.slots = available;
+            })
+
+
+            res.send(services)
         })
 
     } finally {
