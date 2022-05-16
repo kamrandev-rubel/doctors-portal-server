@@ -30,6 +30,7 @@ async function run() {
             res.send(services)
         })
 
+
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
             const query = {
@@ -45,6 +46,15 @@ async function run() {
             res.send({ success: true, result: result })
         })
 
+
+        // booking API for dashboard
+        app.get('/booking', async (req, res) => {
+            const patient = req.query.patient;
+            const query = { patientEmail: patient }
+            const booking = await bookingCollection.find(query).toArray();
+            res.send(booking)
+        })
+
         app.get('/available', async (req, res) => {
             const date = req.query.date
 
@@ -54,6 +64,7 @@ async function run() {
             // step 2: get the booking of the day
             const query = { date: date };
             const bookings = await bookingCollection.find(query).toArray()
+            console.log(bookings)
 
             // step 3: forEach service
             services.forEach(service => {
