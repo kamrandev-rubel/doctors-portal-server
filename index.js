@@ -48,7 +48,12 @@ async function run() {
             res.send(services)
         })
 
-        // Users api for user
+        app.get('/users', async (req, res) => {
+            const users = await userCollection.find().toArray();
+            res.send(users)
+        })
+
+        // create user details for this api
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
             const user = req.body;
@@ -85,7 +90,6 @@ async function run() {
         app.get('/booking', verifyJWT, async (req, res) => {
             const patient = req.query.patient;
             const decodedEmail = req.decoded.email;
-            console.log(decodedEmail)
             if (patient === decodedEmail) {
                 const query = { patientEmail: patient }
                 const booking = await bookingCollection.find(query).toArray();
@@ -105,7 +109,6 @@ async function run() {
             // step 2: get the booking of the day
             const query = { date: date };
             const bookings = await bookingCollection.find(query).toArray()
-            console.log(bookings)
 
             // step 3: forEach service
             services.forEach(service => {
