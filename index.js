@@ -107,7 +107,6 @@ async function run() {
             const email = req.params.email;
             const users = await userCollection.findOne({ email: email })
             const isAdmin = users.role === 'admin'
-            console.log(isAdmin);
             res.send({ admin: isAdmin })
         })
 
