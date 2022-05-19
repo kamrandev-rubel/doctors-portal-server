@@ -47,11 +47,28 @@ async function run() {
             const services = await cursor.toArray();
             res.send(services)
         })
-
-        app.get('/users', async (req, res) => {
+        app.put('/users/admin/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const requester = req.decoded.email
+            const requesterAccount = await userCollection.findOne({ email: requester });
+            if (requesterAccount.role === 'admin') {
+                const filter = { email: email };
+                const updateDoc = {
+                    $set: { role: 'admin' }
+                }
+                const result = await userCollection.updateOne(filter, updateDoc);
+                res.send(result)
+            }
+            else {
+                res.status(403).send({ message: 'Forbidden' })
+            }
+        })
+        app.get('/users', verifyJWT, async (req, res) => {
             const users = await userCollection.find().toArray();
             res.send(users)
         })
+
+
 
         // create user details for this api
         app.put('/user/:email', async (req, res) => {
@@ -83,6 +100,15 @@ async function run() {
             }
             const result = await bookingCollection.insertOne(booking);
             res.send({ success: true, result: result })
+        })
+
+        // admin all user show api
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const users = await userCollection.findOne({ email: email })
+            const isAdmin = users.role === 'admin'
+            console.log(isAdmin);
+            res.send({ admin: isAdmin })
         })
 
 
