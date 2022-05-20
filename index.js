@@ -39,11 +39,24 @@ async function run() {
         const servicesCollection = client.db("doctors-portal").collection("services");
         const bookingCollection = client.db("doctors-portal").collection("bookings");
         const userCollection = client.db("doctors-portal").collection("users");
+        const doctorCollection = client.db("doctors-portal").collection("doctors");
         console.log('Conected DB')
+
+        const verifyAdmin = async (req, res, next) => {
+            const requester = req.decoded.email
+            const requesterAccount = await userCollection.findOne({ email: requester });
+            if (requesterAccount.role === 'admin') {
+                next()
+            }
+            else {
+                res.status(403).send({ message: 'Forbidden Access' })
+            }
+        }
+
 
         app.get('/services', async (req, res) => {
             const query = {};
-            const cursor = servicesCollection.find(query);
+            const cursor = servicesCollection.find(query).project({ name: 1 });
             const services = await cursor.toArray();
             res.send(services)
         })
@@ -148,6 +161,19 @@ async function run() {
 
 
             res.send(services)
+        })
+
+        //get all doctors API
+        app.get('/doctors', verifyJWT, verifyAdmin, async (req, res) => {
+            const doctors = await doctorCollection.find().toArray()
+            res.send(doctors)
+        })
+
+        // doctor api for dashboard
+        app.post('/doctor', verifyJWT, verifyAdmin, async (req, res) => {
+            const doctor = req.body;
+            const result = await doctorCollection.insertOne(doctor);
+            res.send(result);
         })
 
     } finally {
