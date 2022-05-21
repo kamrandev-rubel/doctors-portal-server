@@ -94,7 +94,7 @@ async function run() {
             };
             const result = await userCollection.updateOne(filter, updateDoc, options);
             const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN, {
-                expiresIn: '1h',
+                expiresIn: '1d',
             });
             res.send({ result, token })
         })
@@ -173,6 +173,14 @@ async function run() {
         app.post('/doctor', verifyJWT, verifyAdmin, async (req, res) => {
             const doctor = req.body;
             const result = await doctorCollection.insertOne(doctor);
+            res.send(result);
+        })
+
+        // doctor delete API
+        app.delete('/doctor/:email', verifyJWT, verifyAdmin, async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const result = await doctorCollection.deleteOne(query)
             res.send(result);
         })
 
