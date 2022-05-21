@@ -33,6 +33,7 @@ const client = new MongoClient(uri, {
     useUnifiedTopology: true,
     serverApi: ServerApiVersion.v1
 });
+
 async function run() {
     try {
         await client.connect();
@@ -41,6 +42,7 @@ async function run() {
         const userCollection = client.db("doctors-portal").collection("users");
         const doctorCollection = client.db("doctors-portal").collection("doctors");
         console.log('Conected DB')
+
 
         const verifyAdmin = async (req, res, next) => {
             const requester = req.decoded.email
