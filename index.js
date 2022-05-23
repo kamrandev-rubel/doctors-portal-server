@@ -42,6 +42,7 @@ async function run() {
         const bookingCollection = client.db("doctors-portal").collection("bookings");
         const userCollection = client.db("doctors-portal").collection("users");
         const doctorCollection = client.db("doctors-portal").collection("doctors");
+        const paymentCollection = client.db("doctors-portal").collection("payments");
         console.log('Conected DB')
 
 
@@ -160,6 +161,23 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const result = await bookingCollection.findOne(query)
             res.send(result);
+        })
+
+        //payment complete api
+        app.patch('/booking/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id
+            const payment = req.body;
+            const filter = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId,
+                }
+            }
+            const result = await paymentCollection.insertOne(payment)
+            const updatePayment = await bookingCollection.updateOne(filter, updateDoc)
+            res.send(updateDoc)
+
         })
 
 
