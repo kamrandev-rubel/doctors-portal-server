@@ -171,7 +171,7 @@ async function run() {
             const updateDoc = {
                 $set: {
                     paid: true,
-                    transactionId: payment.transactionId,
+                    transactionId: payment.id,
                 }
             }
             const result = await paymentCollection.insertOne(payment)
