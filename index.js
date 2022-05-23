@@ -1,9 +1,10 @@
 const express = require('express')
 const cors = require('cors');
 const app = express()
-const jwt = require('jsonwebtoken');
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const jwt = require('jsonwebtoken');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
 const port = process.env.PORT || 5000
 
 // Middleware
@@ -55,6 +56,19 @@ async function run() {
             }
         }
 
+        // reate-payment-intent API
+        app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+            const { price } = req.body;
+            const amount = price * 100
+            // Create a PaymentIntent with the order amount and currency
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ["card"],
+            })
+            res.send({ clientSecret: paymentIntent.client_secret });
+        })
+
 
         app.get('/services', async (req, res) => {
             const query = {};
@@ -101,7 +115,7 @@ async function run() {
             res.send({ result, token })
         })
 
-
+        //booking appointment api
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
             const query = {
@@ -139,6 +153,15 @@ async function run() {
                 return res.status(403).send({ message: 'Forbidden Access' })
             }
         })
+
+        // booking payment api
+        app.get('/booking/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await bookingCollection.findOne(query)
+            res.send(result);
+        })
+
 
         app.get('/available', async (req, res) => {
             const date = req.query.date
